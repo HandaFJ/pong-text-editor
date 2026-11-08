@@ -1,0 +1,69 @@
+name: Build Executables
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: juiced_editor-windows.exe
+            cmake_args: ""
+          - os: macos-latest
+            artifact_name: juiced_editor-macos
+            cmake_args: ""
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. 必要な依存関係（SFMLなど）のインストール
+      - name: Install Dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          vcpkg install sfml
+
+      - name: Install Dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install sfml
+
+      # 2. CMakeの構成とビルド (Windows)
+      - name: Configure and Build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build --config Release
+
+      # 2. CMakeの構成とビルド (macOS)
+      - name: Configure and Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -B build -S .
+          cmake --build build --config Release
+
+      # 3. 実行ファイルのアップロード (Artifacts)
+      - name: Upload Windows Artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: juiced-editor-windows
+          path: build/Release/juiced_editor.exe
+
+      - name: Upload macOS Artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: juiced-editor-macos
+          path: build/juiced_editor

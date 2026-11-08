@@ -65,7 +65,7 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.artifact_path }}
 
-  release:
+release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') # タグプッシュ時のみ実行
@@ -76,10 +76,10 @@ jobs:
         with:
           path: artifacts
 
-      # GitHub Releasesへ両方のファイルを同時にアップロード
+      # GitHub Releasesへアップロード（リネーム）
       - name: Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/juiced-editor-windows/juiced_editor.exe
-            artifacts/juiced-editor-macos/juiced_editor
+            artifacts/juiced-editor-windows/juiced_editor.exe -> juiced-editor-windows.exe
+            artifacts/juiced-editor-macos/juiced_editor -> juiced-editor-macos

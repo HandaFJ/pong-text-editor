@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, master ]
     tags:
-      - 'v*' # v1.0.0などのタグがプッシュされた時にトリガー
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -27,13 +27,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. macOSの依存関係インストール (Homebrew)
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install sfml
 
-      # 1. Windows用のSFML（プレビルド版）を直接ダウンロード・展開
       - name: Download SFML (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -43,7 +41,6 @@ jobs:
           $extractedDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "SFML-*" }
           Rename-Item -Path $extractedDir.Name -NewName "SFML"
 
-      # 2. CMakeの構成とビルド (Windows)
       - name: Configure and Build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -51,32 +48,28 @@ jobs:
           cmake -B build -S . -DSFML_DIR="${{ github.workspace }}/SFML/lib/cmake/SFML"
           cmake --build build --config Release
 
-      # 2. CMakeの構成とビルド (macOS)
       - name: Configure and Build (macOS)
         if: runner.os == 'macOS'
         run: |
           cmake -B build -S .
           cmake --build build --config Release
 
-      # 3. 成果物をGitHub Actions内部に保存
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.artifact_path }}
 
-release:
+  release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') # タグプッシュ時のみ実行
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
-      # ビルドされた両方の成果物をダウンロード
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      # GitHub Releasesへアップロード（リネーム）
       - name: Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:

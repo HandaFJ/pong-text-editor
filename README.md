@@ -1,6 +1,6 @@
 Markdown
 
-# Juiced Pong Text Editor 🎮✨
+# Juiced Pong Text Editor
 
 ただのテキストエディタではありません。タイピングの「打鍵感（Juice）」と、アーケードゲームの「Pong（ポン）」が融合した、唯一無二のデジタルアート・エディタです。
 
@@ -8,7 +8,7 @@ Markdown
 
 ---
 
-## ✨ 特徴 (Features)
+## 特徴 (Features)
 
 - **タイピングとPong物理の融合**: 入力した文字が画面の「お化け（物理オブジェクト）」として実体化し、壁や他の文字と衝突しながら画面中を跳ね回ります。
 - **完全同期のバッファ管理**: バックスペースで文字を消去すると、画面上の対応するPong文字も連動してプチ爆発とともに消滅します。
@@ -17,21 +17,20 @@ Markdown
   - パーティクル爆発エフェクト
   - ポップアップ拡大アニメーション
   - 文字同士の弾性衝突とスパーク演出
-- **エディタとしての基本機能**: プレースホルダー表示、自動折り返し（Word Wrap）に対応。
+- **エディタとしての基本機能**: 自動折り返し（Word Wrap）に対応。
 
 ---
 
-## 🛠️ 技術スタック (Tech Stack)
+## 技術スタック (Tech Stack)
 
 - **言語**: C++ (C++17)
 - **ビルドシステム**: CMake (v3.16以上)
 - **グラフィック・ウィンドウ**: SFML 3 (Simple and Fast Multimedia Library)
-- **物理・乱数**: 標準ライブラリ (`<cmath>`, `<random>`)
 - **フォント**: IPAexゴシック (`ipaexg.ttf`) （※OS標準フォントへのフォールバック対応）
 
 ---
 
-## 🚀 再現手順 (Getting Started)
+## 再現手順 (Getting Started)
 
 ### 1. 前提条件（環境構築）
 
@@ -47,17 +46,14 @@ Markdown
 2. ファイルの配置
    リポジトリのルートディレクトリに、以下のファイル構造で配置します。
 
-main.cpp
-
-CMakeLists.txt
-
-ipaexg.ttf （※なくてもOS標準フォントにフォールバックします）
+- main.cpp
+- CMakeLists.txt
+- assets/ipaexg.ttf （※なくてもOS標準フォントにフォールバックします）
 
 3. CMakeによるビルド (Build)
    ターミナル（またはコマンドプロンプト）でリポジトリのルートディレクトリを開き、以下のコマンドを実行します。
 
-Bash
-
+```Bash
 # 1. ビルド用ディレクトリを作成して移動
 
 mkdir build
@@ -71,20 +67,20 @@ cmake .
 
 cmake --build .
 (※ macOSの場合: cmake -DSFML_DIR=/opt/homebrew/lib/cmake/SFML ..)
+```
 
 4. 実行 (Run)
    ビルドが成功すると、build ディレクトリ内（またはその中の Debug / Release フォルダ内）に実行ファイルが生成されます。
 
-Bash
-
+```Bash
 # macOS / Linux
-
 ./juiced_editor
 
 # Windows (コマンドプロンプト等)
-
 .\juiced_editor.exe
-📝 ライセンス (License)
+```
+
+## ライセンス (License)
 このプロジェクトは MIT ライセンスの下で公開されています。詳細については LICENSE ファイルをご確認ください。
 
 ※ 本プロジェクトで使用しているフォント（ipaexg.ttf）は、独立行政法人情報処理推進機構（IPA）が定める 「IPAフォントライセンス v1.0」 に準拠しています。

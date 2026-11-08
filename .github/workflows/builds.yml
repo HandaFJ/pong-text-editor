@@ -71,3 +71,12 @@ jobs:
         with:
           name: juiced-editor-macos
           path: build/juiced_editor
+
+      # 4. WindowsとmacOSの実行ファイルを両方ともGitHub Releasesにアップロード
+      - name: Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') 
+        with:
+          files: |
+            build/Release/juiced_editor.exe
+            build/juiced_editor

@@ -2,9 +2,9 @@ name: Build Executables
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -18,33 +18,37 @@ jobs:
         include:
           - os: windows-latest
             artifact_name: juiced_editor-windows.exe
-            cmake_args: ""
           - os: macos-latest
             artifact_name: juiced_editor-macos
-            cmake_args: ""
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. 必要な依存関係（SFMLなど）のインストール
-      - name: Install Dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          vcpkg install sfml --triplet x64-windows
-
+      # 1. macOSの依存関係インストール (Homebrew)
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
           brew install sfml
 
+      # 1. Windows用のSFML（プレビルド版）を直接ダウンロード・展開
+      - name: Download SFML (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $sfmlUrl = "https://www.sfml-dev.org/files/SFML-3.0.0-windows-vc17-64-bit.zip"
+          Invoke-WebRequest -Uri $sfmlUrl -OutFile "sfml.zip"
+          Expand-Archive -Path "sfml.zip" -DestinationPath "."
+          $extractedDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "SFML-*" }
+          Rename-Item -Path $extractedDir.Name -NewName "SFML"
+
       # 2. CMakeの構成とビルド (Windows)
+      # ※ダウンロードしたSFMLのパスをCMAKE_PREFIX_PATHで明示的に指定します
       - name: Configure and Build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
-          cmake --build build --config Release --parallel 1
+          cmake -B build -S . -DSFML_DIR="${{ github.workspace }}/SFML/lib/cmake/SFML"
+          cmake --build build --config Release
 
       # 2. CMakeの構成とビルド (macOS)
       - name: Configure and Build (macOS)
@@ -53,7 +57,7 @@ jobs:
           cmake -B build -S .
           cmake --build build --config Release
 
-      # 3. 実行ファイルのアップロード (Artifacts)
+      # 3. 実行ファイルのアップロード
       - name: Upload Windows Artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4

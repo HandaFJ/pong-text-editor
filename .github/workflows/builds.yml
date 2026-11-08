@@ -3,8 +3,8 @@ name: Build and Release
 on:
   push:
     branches: [ main, master ]
-  tags:
-    - 'v*' # v1.0.0などのタグがプッシュされた時にもトリガーする場合
+    tags:
+      - 'v*' # v1.0.0などのタグがプッシュされた時にトリガー
   workflow_dispatch:
 
 jobs:

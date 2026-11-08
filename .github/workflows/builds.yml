@@ -31,7 +31,7 @@ jobs:
       - name: Install Dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          vcpkg install sfml
+          vcpkg install sfml --triplet x64-windows
 
       - name: Install Dependencies (macOS)
         if: runner.os == 'macOS'
@@ -43,8 +43,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-          cmake --build build --config Release
+          cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
+          cmake --build build --config Release --parallel 1
 
       # 2. CMakeの構成とビルド (macOS)
       - name: Configure and Build (macOS)

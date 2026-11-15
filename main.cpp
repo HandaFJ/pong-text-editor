@@ -117,17 +117,23 @@ private:
     }
 
     // フォント読み込み（Windows & macOS対応）
+    // 優先順位: 等幅フォント → IPAフォント(代替)
     void loadFont() {
         const std::vector<std::string> fontCandidates = {
-            "assets/ipaexg.ttf",
+            "assets/mono.ttf",  // 任意: 同梱したい等幅フォントがあればここに置く
+        #if defined(_WIN32)
+            "C:\\Windows\\Fonts\\consola.ttf",   // Consolas(等幅)
+            "C:\\Windows\\Fonts\\msgothic.ttc",  // MSゴシック(等幅)
+        #elif defined(__APPLE__)
+            "/System/Library/Fonts/Menlo.ttc",   // Menlo(等幅)
+            "/System/Library/Fonts/Supplemental/Courier New.ttf",
+        #endif
+            "assets/ipaexg.ttf",                 // IPAexゴシック(代替)
             "assets/font.ttf",
         #if defined(_WIN32)
-                    "C:\\Windows\\Fonts\\ipaexg.ttf",
-                    "C:\\Windows\\Fonts\\msgothic.ttc",
-                    "C:\\Windows\\Fonts\\meiryo.ttc",
+            "C:\\Windows\\Fonts\\meiryo.ttc",
         #elif defined(__APPLE__)
-                    "/System/Library/Fonts/Supplemental/Courier New.ttf",
-                    "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Helvetica.ttc",
         #endif
         };
 
@@ -141,7 +147,7 @@ private:
         }
 
         if (!loaded) {
-            std::cerr << "[Error] Could not load any default font. Please place 'ipaexg.ttf' in the executable directory." << std::endl;
+            std::cerr << "[Error] Could not load any default font. Please place 'ipaexg.ttf' in the assets folder." << std::endl;
         }
     }
 
@@ -463,34 +469,29 @@ private:
             window.draw(placeholder);
         }
 
-        // --- C. 自動折り返しを考慮したテキスト描画 ---
+        // --- C. 自動折り返しを考慮したテキスト描画(1文字ずつグリッド配置) ---
         sf::Text textDrawable(font, "", static_cast<unsigned int>(FONT_SIZE));
         textDrawable.setFillColor(sf::Color(220, 225, 235, 240));
 
         float currentY = MARGIN_Y;
         for (size_t i = 0; i < lines.size(); ++i) {
             float currentX = MARGIN_X;
-            std::string currentLineChunk = "";
 
             for (char c : lines[i]) {
                 if (currentX + CHAR_WIDTH > MARGIN_X + MAX_TEXT_WIDTH) {
-                    textDrawable.setPosition({currentX - currentLineChunk.length() * CHAR_WIDTH, currentY});
-                    textDrawable.setString(currentLineChunk);
-                    window.draw(textDrawable);
-
-                    currentLineChunk = "";
                     currentX = MARGIN_X;
                     currentY += LINE_HEIGHT;
                 }
-                currentLineChunk += c;
-                currentX += CHAR_WIDTH;
-            }
 
-            if (!currentLineChunk.empty() || lines[i].empty()) {
-                float startX = MARGIN_X;
-                textDrawable.setPosition({startX, currentY});
-                textDrawable.setString(currentLineChunk);
-                window.draw(textDrawable);
+                if (c != ' ') {
+                    // フォントごとの文字幅の差を吸収し、升目(CHAR_WIDTH)の中央に配置
+                    float advance = font.getGlyph(static_cast<std::uint32_t>(c),
+                                                  static_cast<unsigned int>(FONT_SIZE), false).advance;
+                    textDrawable.setString(std::string(1, c));
+                    textDrawable.setPosition({currentX + (CHAR_WIDTH - advance) / 2.0f, currentY});
+                    window.draw(textDrawable);
+                }
+                currentX += CHAR_WIDTH;
             }
             currentY += LINE_HEIGHT;
         }

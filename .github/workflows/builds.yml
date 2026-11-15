@@ -31,7 +31,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -B build -S . -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake -B build -S . "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
           cmake --build build --config Release
 
       - name: Package (Windows)

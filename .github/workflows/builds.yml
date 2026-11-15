@@ -21,32 +21,17 @@ jobs:
             artifact_path: juiced-editor-windows.zip
           - os: macos-latest
             artifact_name: juiced-editor-macos
-            artifact_path: build/juiced_editor
+            artifact_path: juiced-editor-macos.zip
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install sfml
-
-      - name: Download SFML (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $sfmlUrl = "https://www.sfml-dev.org/files/SFML-3.0.0-windows-vc17-64-bit.zip"
-          Invoke-WebRequest -Uri $sfmlUrl -OutFile "sfml.zip"
-          Expand-Archive -Path "sfml.zip" -DestinationPath "."
-          $extractedDir = Get-ChildItem -Directory | Where-Object { $_.Name -like "SFML-*" }
-          Rename-Item -Path $extractedDir.Name -NewName "SFML"
-
       - name: Configure and Build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          cmake -B build -S . -DSFML_DIR="${{ github.workspace }}/SFML/lib/cmake/SFML"
+          cmake -B build -S .
           cmake --build build --config Release
 
       - name: Package (Windows)
@@ -55,17 +40,23 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path dist | Out-Null
           Copy-Item build/Release/juiced_editor.exe dist/
-          # Release用DLLのみコピー(デバッグ用の *-d-3.dll は除外)
-          Get-ChildItem SFML/bin/*.dll | Where-Object { $_.Name -notlike "*-d-*" } | Copy-Item -Destination dist/
-          if (Test-Path SFML/license.md) { Copy-Item SFML/license.md dist/SFML-LICENSE.md }
-          Get-ChildItem dist
+          Copy-Item assets dist/assets -Recurse
           Compress-Archive -Path dist/* -DestinationPath juiced-editor-windows.zip
 
       - name: Configure and Build (macOS)
         if: runner.os == 'macOS'
         run: |
-          cmake -B build -S .
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir dist
+          cp build/juiced_editor dist/
+          cp -R assets dist/assets
+          chmod +x dist/juiced_editor
+          cd dist && zip -r ../juiced-editor-macos.zip .
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -90,4 +81,4 @@ jobs:
         with:
           files: |
             artifacts/juiced-editor-windows/juiced-editor-windows.zip
-            artifacts/juiced-editor-macos/juiced_editor
+            artifacts/juiced-editor-macos/juiced-editor-macos.zip
